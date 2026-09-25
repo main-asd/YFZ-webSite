@@ -1283,64 +1283,77 @@ c-3 -8 -6 -5 -6 6 -1 11 2 17 5 13 3 -3 4 -12 1 -19z m-1267 -16 c-7 -3 -19 3
 
   </div>
 
-  <script>
-    async function setupReleaseAndStats() {
-      // Репозиторій сайту та релізів
-      const REPO_USER = 'main-asd';
-      const REPO_NAME = 'YFZ-webSite'; 
+ <script>
+  async function setupReleaseAndStats() {
+    const REPO_USER = 'main-asd';
+    const REPO_NAME = 'YFZ-webSite'; 
 
-      const countElement = document.getElementById('download-count');
-      const downloadBtn = document.getElementById('download-fork-btn');
+    const countElement = document.getElementById('download-count');
+    const downloadBtn = document.getElementById('download-fork-btn');
 
-      try {
-        // Отримуємо списки релізів репозиторію
-        const response = await fetch(`https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/releases`);
+    try {
+      // Отримуємо списки релізів репозиторію
+      const response = await fetch(`https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/releases`);
+      
+      if (!response.ok) throw new Error('Release network response was not ok');
+      
+      const releases = await response.json();
+      let totalDownloads = 0;
+      let latestAssetUrl = null;
+
+      if (releases && releases.length > 0) {
+        // Отримуємо найновіший реліз
+        const latestRelease = releases[0];
         
-        if (!response.ok) throw new Error('Release network response was not ok');
-        
-        const releases = await response.json();
-        let totalDownloads = 0;
-        let latestAssetUrl = null;
+        if (latestRelease.assets && latestRelease.assets.length > 0) {
+          // Шукаємо саме файл архіву .zip або .exe (ігноруємо вихідний код)
+          const gameAsset = latestRelease.assets.find(asset => 
+            asset.name.endsWith('.zip') || asset.name.endsWith('.exe')
+          );
 
-        if (releases && releases.length > 0) {
-          // Найновіший реліз
-          const latestRelease = releases[0];
-          
-          // Беремо пряме посилання на перший файл у релізі (.zip або .exe)
-          if (latestRelease.assets && latestRelease.assets.length > 0) {
+          if (gameAsset) {
+            latestAssetUrl = gameAsset.browser_download_url;
+          } else {
+            // Якщо точного збігу за розширенням немає, беремо перший asset
             latestAssetUrl = latestRelease.assets[0].browser_download_url;
           }
-
-          // Сумуємо всі скачування файлів
-          releases.forEach(release => {
-            if (release.assets) {
-              release.assets.forEach(asset => {
-                totalDownloads += asset.download_count;
-              });
-            }
-          });
         }
 
-        // Встановлюємо пряме посилання на завантаження архіву
-        if (latestAssetUrl && downloadBtn) {
-          downloadBtn.href = latestAssetUrl;
-        }
+        // Підраховуємо сумарні скачування за всіма релізами
+        releases.forEach(release => {
+          if (release.assets) {
+            release.assets.forEach(asset => {
+              totalDownloads += asset.download_count;
+            });
+          }
+        });
+      }
 
-        // Оновлюємо кількість завантажень
-        if (countElement) {
-          countElement.innerText = totalDownloads;
-        }
+      // Встановлюємо пряме посилання на завантаження архіву в кнопку
+      if (latestAssetUrl && downloadBtn) {
+        downloadBtn.href = latestAssetUrl;
+      }
 
-      } catch (error) {
-        console.warn('Помилка завантаження статистики з GitHub API:', error);
-        if (countElement) {
-          countElement.innerText = '0';
-        }
+      // Оновлюємо кількість завантажень
+      if (countElement) {
+        countElement.innerText = totalDownloads;
+      }
+
+    } catch (error) {
+      console.warn('Помилка завантаження статистики з GitHub API:', error);
+      
+      // Якщо API заблоковано або сталася помилка — ставимо пряме посилання як резерв
+      if (downloadBtn) {
+        downloadBtn.href = `https://github.com/${REPO_USER}/${REPO_NAME}/releases/download/v0.1/YourFlyZone.zip`;
+      }
+      if (countElement) {
+        countElement.innerText = '0';
       }
     }
+  }
 
-    document.addEventListener('DOMContentLoaded', setupReleaseAndStats);
-  </script>
+  document.addEventListener('DOMContentLoaded', setupReleaseAndStats);
+</script>
 
 </body>
 </html>
