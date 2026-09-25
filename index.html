@@ -1265,48 +1265,33 @@ c-3 -8 -6 -5 -6 6 -1 11 2 17 5 13 3 -3 4 -12 1 -19z m-1267 -16 c-7 -3 -19 3
         <p><span class="label">GitHub</span> <span class="sub-label">(original):</span> <a href="https://github.com/Welloty/noflyzone" target="_blank">https://github.com/Welloty/noflyzone</a></p>
         <p><span class="label">Telegram</span> <span class="sub-label">(original):</span> <a href="https://t.me/NoFlyZoneofficial" target="_blank">https://t.me/NoFlyZoneofficial</a></p>
       </div>
-
       <div class="actions-area">
         <div class="stats">
           <span><span class="counter">Uploaded</span></span>
           <span><span class="counter" id="download-count">...</span> peoples</span>
         </div>
-
         <div class="buttons-group">
-          <a href="https://github.com/Welloty/noflyzone" target="_blank" class="btn btn-original">Download Original</a>
-          
-          <!-- Кнопка завантаження вашої версії -->
+          <a href="https://t.me/NoFlyZoneofficial/192" target="_blank" class="btn btn-original">Download Original</a>
           <a id="download-fork-btn" href="https://github.com/main-asd/YFZ-webSite/releases/download/v0.1/YourFlyZone.zip" class="btn btn-fork" download>Download this version</a>
         </div>
       </div>
     </div>
-
   </div>
-
  <script>
   async function setupReleaseAndStats() {
     const REPO_USER = 'main-asd';
     const REPO_NAME = 'YFZ-webSite'; 
-
     const countElement = document.getElementById('download-count');
     const downloadBtn = document.getElementById('download-fork-btn');
-
     try {
-      // Отримуємо списки релізів репозиторію
-      const response = await fetch(`https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/releases`);
-      
-      if (!response.ok) throw new Error('Release network response was not ok');
-      
+      const response = await fetch(`https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/releases`);      
+      if (!response.ok) throw new Error('Release network response was not ok');     
       const releases = await response.json();
       let totalDownloads = 0;
       let latestAssetUrl = null;
-
       if (releases && releases.length > 0) {
-        // Отримуємо найновіший реліз
-        const latestRelease = releases[0];
-        
+        const latestRelease = releases[0]; 
         if (latestRelease.assets && latestRelease.assets.length > 0) {
-          // Шукаємо саме файл архіву .zip або .exe (ігноруємо вихідний код)
           const gameAsset = latestRelease.assets.find(asset => 
             asset.name.endsWith('.zip') || asset.name.endsWith('.exe')
           );
@@ -1314,12 +1299,9 @@ c-3 -8 -6 -5 -6 6 -1 11 2 17 5 13 3 -3 4 -12 1 -19z m-1267 -16 c-7 -3 -19 3
           if (gameAsset) {
             latestAssetUrl = gameAsset.browser_download_url;
           } else {
-            // Якщо точного збігу за розширенням немає, беремо перший asset
             latestAssetUrl = latestRelease.assets[0].browser_download_url;
           }
         }
-
-        // Підраховуємо сумарні скачування за всіма релізами
         releases.forEach(release => {
           if (release.assets) {
             release.assets.forEach(asset => {
@@ -1328,21 +1310,16 @@ c-3 -8 -6 -5 -6 6 -1 11 2 17 5 13 3 -3 4 -12 1 -19z m-1267 -16 c-7 -3 -19 3
           }
         });
       }
-
-      // Встановлюємо пряме посилання на завантаження архіву в кнопку
       if (latestAssetUrl && downloadBtn) {
         downloadBtn.href = latestAssetUrl;
       }
-
-      // Оновлюємо кількість завантажень
       if (countElement) {
         countElement.innerText = totalDownloads;
       }
 
     } catch (error) {
       console.warn('Помилка завантаження статистики з GitHub API:', error);
-      
-      // Якщо API заблоковано або сталася помилка — ставимо пряме посилання як резерв
+   
       if (downloadBtn) {
         downloadBtn.href = `https://github.com/${REPO_USER}/${REPO_NAME}/releases/download/v0.1/YourFlyZone.zip`;
       }
@@ -1351,7 +1328,6 @@ c-3 -8 -6 -5 -6 6 -1 11 2 17 5 13 3 -3 4 -12 1 -19z m-1267 -16 c-7 -3 -19 3
       }
     }
   }
-
   document.addEventListener('DOMContentLoaded', setupReleaseAndStats);
 </script>
 
