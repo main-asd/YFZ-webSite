@@ -39,6 +39,8 @@
       gap: 48px;
       align-items: flex-start;
     }
+
+    /* Left Preview Box */
     .preview-box {
       width: 320px;
       height: 320px;
@@ -59,6 +61,8 @@
       object-fit: contain;
       filter: drop-shadow(0 0 12px rgba(10, 80, 160, 0.4));
     }
+
+    /* Right Info Box */
     .info-box {
       flex-grow: 1;
       display: flex;
@@ -114,6 +118,8 @@
       color: #a0a0a0;
       line-height: 1.5;
     }
+
+    /* Bottom Section */
     .bottom-section {
       display: flex;
       justify-content: space-between;
@@ -155,25 +161,31 @@
       text-decoration: underline;
       color: #70b4ff;
     }
+
+    /* Action & Download Area */
     .actions-area {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
       gap: 18px;
     }
+
     .stats {
       font-size: 16px;
       color: #ffffff;
       display: flex;
       gap: 16px;
     }
+
     .stats span.counter {
       font-weight: 700;
     }
+
     .buttons-group {
       display: flex;
       gap: 20px;
     }
+
     .btn {
       display: inline-flex;
       align-items: center;
@@ -189,44 +201,56 @@
       transition: transform 0.15s ease, filter 0.2s ease, box-shadow 0.2s ease;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
+
     .btn:hover {
       transform: translateY(-2px);
       filter: brightness(1.1);
     }
+
     .btn:active {
       transform: translateY(0);
     }
+
     .btn-original {
       background-color: #41721d;
     }
+
     .btn-fork {
       background-color: #1e62b4;
     }
+
+    /* Responsive adjustments */
     @media (max-width: 900px) {
       .container {
         padding: 24px;
       }
+
       .top-section {
         flex-direction: column;
         align-items: center;
         gap: 24px;
       }
+
       .preview-box {
         width: 100%;
         max-width: 320px;
         height: 260px;
       }
+
       .bottom-section {
         flex-direction: column;
         align-items: stretch;
       }
+
       .actions-area {
         align-items: stretch;
         width: 100%;
       }
+
       .buttons-group {
         flex-direction: column;
       }
+
       .btn {
         width: 100%;
       }
@@ -234,10 +258,13 @@
   </style>
 </head>
 <body>
+
   <div class="container">
+    
+    <!-- Top Section (Preview & Description) -->
     <div class="top-section">
       <div class="preview-box">
-        <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+       <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
  width="768.000000pt" height="768.000000pt" viewBox="0 0 768.000000 768.000000"
  preserveAspectRatio="xMidYMid meet">
 <g transform="translate(0.000000,768.000000) scale(0.100000,-0.100000)"
@@ -1241,50 +1268,79 @@ c-3 -8 -6 -5 -6 6 -1 11 2 17 5 13 3 -3 4 -12 1 -19z m-1267 -16 c-7 -3 -19 3
 
       <div class="actions-area">
         <div class="stats">
-  <span><span class="counter">Uploaded</span></span>
-  <span><span class="counter" id="download-count">...</span> peoples</span>
-</div>
+          <span><span class="counter">Uploaded</span></span>
+          <span><span class="counter" id="download-count">...</span> peoples</span>
+        </div>
 
         <div class="buttons-group">
           <a href="https://github.com/Welloty/noflyzone" target="_blank" class="btn btn-original">Download Original</a>
-          <a href="https://github.com/main-asd/Your-Fly-Zone" target="_blank" class="btn btn-fork">Download this version</a>
+          
+          <!-- Кнопка завантаження вашої версії -->
+          <a id="download-fork-btn" href="https://github.com/main-asd/Your-Fly-Zone/releases/latest" class="btn btn-fork" download>Download this version</a>
         </div>
       </div>
     </div>
 
   </div>
-<script>
-  async function updateDownloadCount() {
-    const repoUser = 'main-asd';
-    const repoName = 'Your-Fly-Zone';
-    const countElement = document.getElementById('download-count');
 
-    try {
-      const response = await fetch(`https://api.github.com/repos/${repoUser}/${repoName}/releases`);
-      
-      if (!response.ok) throw new Error('Release not found');
-      
-      const releases = await response.json();
-      let totalDownloads = 0;
-      releases.forEach(release => {
-       if (release.assets && release.assets.length > 0) {
-          release.assets.forEach(asset => {
-            totalDownloads += asset.download_count;
+  <script>
+    async function setupReleaseAndStats() {
+      // Репозиторій сайту та релізів
+      const REPO_USER = 'main-asd';
+      const REPO_NAME = 'Your-Fly-Zone'; 
+
+      const countElement = document.getElementById('download-count');
+      const downloadBtn = document.getElementById('download-fork-btn');
+
+      try {
+        // Отримуємо списки релізів репозиторію
+        const response = await fetch(`https://api.github.com/repos/${REPO_USER}/${REPO_NAME}/releases`);
+        
+        if (!response.ok) throw new Error('Release network response was not ok');
+        
+        const releases = await response.json();
+        let totalDownloads = 0;
+        let latestAssetUrl = null;
+
+        if (releases && releases.length > 0) {
+          // Найновіший реліз
+          const latestRelease = releases[0];
+          
+          // Беремо пряме посилання на перший файл у релізі (.zip або .exe)
+          if (latestRelease.assets && latestRelease.assets.length > 0) {
+            latestAssetUrl = latestRelease.assets[0].browser_download_url;
+          }
+
+          // Сумуємо всі скачування файлів
+          releases.forEach(release => {
+            if (release.assets) {
+              release.assets.forEach(asset => {
+                totalDownloads += asset.download_count;
+              });
+            }
           });
         }
-      });
 
-      if (countElement) {
-        countElement.innerText = totalDownloads;
-      }
-    } catch (error) {
-      console.warn('Не вдалося завантажити статистику з GitHub:', error);
-      if (countElement) {
-        countElement.innerText = '0'; 
+        // Встановлюємо пряме посилання на завантаження архіву
+        if (latestAssetUrl && downloadBtn) {
+          downloadBtn.href = latestAssetUrl;
+        }
+
+        // Оновлюємо кількість завантажень
+        if (countElement) {
+          countElement.innerText = totalDownloads;
+        }
+
+      } catch (error) {
+        console.warn('Помилка завантаження статистики з GitHub API:', error);
+        if (countElement) {
+          countElement.innerText = '0';
+        }
       }
     }
-  }
-  document.addEventListener('DOMContentLoaded', updateDownloadCount);
-</script>
+
+    document.addEventListener('DOMContentLoaded', setupReleaseAndStats);
+  </script>
+
 </body>
 </html>
